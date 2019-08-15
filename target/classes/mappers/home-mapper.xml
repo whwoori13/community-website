@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.woori.community.HomeDAO">
+	<insert id="insertCustomer" parameterType="Customer">
+		INSERT INTO customer
+		(id, pw, email, address, joinDate)
+		VALUES (#{id}, #{pw}, #{email},
+		#{address}, LOCALTIME)
+	</insert>
+
+	<select id="checkIdPw" parameterType="Customer"
+		resultType="Customer">
+		SELECT * FROM customer
+		WHERE id = #{id} AND pw = #{pw}
+	</select>
+
+	<select id="loadAlert" parameterType="java.lang.String"
+		resultType="AlertDTO">
+		SELECT * FROM alert
+		WHERE customerId = #{value}
+		ORDER BY
+		replyNum DESC
+		LIMIT 20
+	</select>
+
+	<select id="loadNewAlertCnt" parameterType="java.lang.String"
+		resultType="int">
+		SELECT newAlert FROM customer
+		WHERE id = #{value}
+	</select>
+
+	<delete id="flushAlert" parameterType="java.lang.String">
+		DELETE FROM alert
+		WHERE
+		customerId = #{value}
+	</delete>
+
+	<update id="setNewAlertZero" parameterType="java.lang.String">
+		UPDATE customer SET
+		newAlert = 0
+		WHERE id = #{value}
+	</update>
+
+	<select id="getFavorite" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT topic FROM favorite
+		WHERE customerID = #{value}
+	</select>
+
+	<insert id="addFav" parameterType="hashmap">
+		INSERT INTO favorite
+		VALUES(#{id}, #{topic})
+	</insert>
+
+	<delete id="deFav" parameterType="hashmap">
+		DELETE FROM favorite
+		WHERE
+		customerId = #{id}
+		AND topic = #{topic}
+	</delete>
+
+	<select id="loadRating" resultType="RankDTO">
+		SELECT topic, SUM(viewCount) AS rating FROM
+		(
+		SELECT topic, viewCount FROM article
+		ORDER BY num DESC
+		LIMIT 100
+		) AS sub
+		GROUP BY topic
+		ORDER BY rating DESC
+	</select>
+	
+	<select id="checkIdDup" parameterType="java.lang.String" resultType="int">
+		SELECT COUNT(id) FROM customer
+		WHERE id = #{value}
+	</select>
+	
+	<select id="checkcName" parameterType="java.lang.String" resultType="int">
+		SELECT COUNT(name) FROM category
+		WHERE name = #{value}
+	</select>
+	
+	<select id="checkcCode" parameterType="java.lang.String" resultType="int">
+		SELECT COUNT(code) FROM category
+		WHERE code = #{value}
+	</select>
+	
+	<select id="checktName" parameterType="java.lang.String" resultType="int">
+		SELECT COUNT(name) FROM topic
+		WHERE name = #{value}
+	</select>
+	
+	<select id="checktCode" parameterType="java.lang.String" resultType="int">
+		SELECT COUNT(code) FROM topic
+		WHERE code = #{value}
+	</select>
+	
+	<delete id="deleteCustomer" parameterType="Customer">
+		DELETE FROM customer 
+		WHERE id = #{id}
+	</delete>
+
+</mapper>
+
+
+
+
+                    
+
+
+
+
+
+
+
+
+
+
+
+
+

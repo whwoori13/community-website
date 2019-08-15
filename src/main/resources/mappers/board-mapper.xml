@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 맵핑될 DAO 인터페이스의 Full -->
+<mapper namespace="com.woori.community.BoardDAO">
+	<!-- id 속성은 DAO의 메소드 이름과 같아야 한다. -->
+
+
+	<!-- for testing ============================================================ -->
+
+	<delete id="test2" parameterType="java.lang.String">
+		DELETE FROM ${value} <!-- #으로 하면 따옴표가 생겨서 안된다. -->
+		WHERE
+		num = 8;
+	</delete>
+	<select id="test1" parameterType="hashmap" resultType="int">
+		SELECT *
+		FROM article
+		WHERE title LIKE "%asd%"
+		ORDER BY num DESC
+		LIMIT 10 OFFSET 0
+	</select>
+	<insert id="test3">
+		<selectKey resultType="int" keyProperty="boardOrder"
+			order="BEFORE">
+			SELECT MAX(boardOrder)+1 FROM test
+		</selectKey>
+		INSERT INTO test(boardOrder, boardType)
+		VALUES(#{boardOrder},
+		'b')
+	</insert>
+
+	<!-- for testing ============================================================ -->
+
+
+
+
+	<!-- NavMenu ============================================================ -->
+	<select id="getCategory" resultType="CategoryDTO">
+		SELECT * FROM category
+		ORDER
+		BY name
+	</select>
+	<select id="getCTmatch" resultType="CTmatchDTO">
+		SELECT * FROM ctmatch
+		ORDER BY
+		category
+
+	</select>
+	<select id="getTopic" resultType="TopicDTO">
+		SELECT * FROM topic
+		ORDER BY
+		name
+	</select>
+	<!-- NavMenu ============================================================ -->
+
+
+	<select id="loadArticlesPaged" parameterType="hashmap"
+		resultType="Article">
+		SELECT * FROM article
+		WHERE
+		topic = #{topic}
+		ORDER BY num DESC
+		LIMIT #{limit} OFFSET
+		#{offset}
+	</select>
+	<select id="loadMyReplies" parameterType="hashmap"
+		resultType="Reply">
+		select t1.num, t1.content, t1.writeDate, t1.customer_id,
+		t1.article_num, t2.topic as article_topic
+		FROM reply as t1, article as t2
+		WHERE
+		t1.article_num = t2.num
+		AND t1.isDeleted = 0
+		AND t1.customer_id = #{myId}
+		ORDER BY num DESC
+		LIMIT
+		#{limit}
+		OFFSET #{offset}
+	</select>
+	<select id="loadMyArticles" parameterType="hashmap"
+		resultType="Article">
+		SELECT * FROM article
+		WHERE
+		customer_id = #{myId}
+		ORDER BY num
+		DESC
+		LIMIT #{limit} OFFSET
+		#{offset}
+	</select>
+	<select id="loadArticlesPagedSearched" parameterType="hashmap"
+		resultType="Article">
+		SELECT * FROM article
+		<choose>
+			<when test="searchType == 'title_content'">
+				WHERE (title LIKE
+				CONCAT('%', #{keyword}, '%') OR
+				content LIKE CONCAT('%',
+				#{keyword}, '%')) AND
+				topic = #{topic}
+			</when>
+			<otherwise>
+				WHERE (${searchType} LIKE CONCAT('%', #{keyword}, '%'))
+				AND topic = #{topic}
+			</otherwise>
+		</choose>
+		ORDER BY num DESC
+		LIMIT
+		#{limit} OFFSET
+		#{offset}
+	</select>
+	<select id="loadArticles" resultType="Article">
+		SELECT * FROM article
+		ORDER
+		BY num DESC
+	</select>
+	<select id="loadOneArticle" parameterType="int"
+		resultType="Article">
+		SELECT * FROM article WHERE num = #{num}
+	</select>
+	<select id="loadOneReply" parameterType="int" resultType="Reply">
+		SELECT
+		* FROM reply WHERE num = #{replyNum}
+	</select>
+	<update id="increaseViewCount" parameterType="int">
+		UPDATE article SET
+		viewCount = viewCount + 1
+		WHERE num = #{num};
+	</update>
+	<insert id="saveArticle" parameterType="Article">
+		INSERT INTO article
+		(customer_id, writeDate, content, title, topic)
+		VALUES (#{customerId},
+		LOCALTIME, #{content},
+		#{title}, #{topic})
+	</insert>
+	<delete id="deleteArticle" parameterType="int">
+		DELETE FROM article
+		WHERE num = #{articleNum}
+	</delete>
+	<update id="editArticle" parameterType="Article">
+		UPDATE article SET
+		title =
+		#{title},
+		content = #{content}
+		WHERE num = #{num};
+	</update>
+
+	<insert id="saveReply" parameterType="Reply"> <!-- 대댓글 저장 -->
+		INSERT INTO reply
+		(customer_id, article_num, writeDate, content,
+		groupOrder, depth, groupNum)
+		VALUES
+		(#{customerId},
+		#{articleNum},
+		LOCALTIME, #{content},
+		#{groupOrder},
+		#{depth}, #{groupNum})
+	</insert>
+	<update id="udtGrpNum"> <!-- root 댓글 저장 후 그것의 groupNum의 값을 댓글 num과 일치시킴. -->
+		UPDATE reply SET groupNum = num
+		ORDER BY num DESC LIMIT 1;
+	</update>
+	<update id="increaseReplyCount" parameterType="int">
+		UPDATE article SET
+		replyCount = replyCount + 1
+		WHERE num = #{articleNum};
+	</update>
+	<update id="decreaseReplyCount" parameterType="int">
+		UPDATE article SET
+		replyCount = replyCount - 1
+		WHERE num = #{articleNum};
+	</update>
+	<select id="loadReplies" parameterType="hashmap"
+		resultType="Reply">
+		SELECT * FROM reply
+		WHERE article_num = #{articleNum}
+		ORDER
+		BY groupNum ASC, groupOrder ASC
+		LIMIT #{limit} OFFSET #{offset}
+	</select>
+
+	<select id="getTotalCount" parameterType="java.lang.String"
+		resultType="int">
+		SELECT COUNT(num)
+		FROM ${value};
+	</select>
+
+	<select id="getTotalArticleCount"
+		parameterType="java.lang.String" resultType="int">
+		SELECT COUNT(num)
+		FROM
+		article WHERE
+		topic = #{value};
+	</select>
+
+	<select id="getMyReplyCount" parameterType="java.lang.String"
+		resultType="int">
+		SELECT COUNT(num)
+		FROM
+		reply WHERE
+		customer_id = #{value}
+		AND isDeleted = 0
+	</select>
+
+	<select id="getMyArticleCount" parameterType="java.lang.String"
+		resultType="int">
+		SELECT COUNT(num)
+		FROM
+		article WHERE
+		customer_id = #{value};
+	</select>
+
+
+	<select id="getTotalArticleCountSearched"
+		parameterType="hashmap" resultType="int">
+		SELECT COUNT(num)
+		FROM
+		article WHERE
+		topic = #{topic}
+		<choose>
+			<when test="searchType == 'title_content'">
+				AND (title LIKE
+				CONCAT('%', #{keyword}, '%') OR
+				content LIKE CONCAT('%',
+				#{keyword}, '%'))
+			</when>
+			<otherwise>
+				AND (${searchType} LIKE CONCAT('%', #{keyword}, '%'))
+			</otherwise>
+		</choose>
+	</select>
+
+
+	<select id="getTotalReplyCount" parameterType="int"
+		resultType="int">
+		SELECT COUNT(num)
+		FROM reply
+		WHERE article_num = #{num}
+		
+	</select>
+	<select id="getRecentArticleNum" resultType="int">
+		SELECT num FROM
+		article ORDER BY num DESC LIMIT 1;
+	</select>
+	<select id="getSearchedCount" parameterType="hashmap"
+		resultType="int">
+		SELECT COUNT(num)
+		FROM article
+		<choose>
+			<when test="searchType == 'title_content'">
+				WHERE (title LIKE
+				CONCAT('%', #{keyword}, '%') OR
+				content LIKE CONCAT('%',
+				#{keyword}, '%')) AND
+				topic = #{topic}
+			</when>
+			<otherwise>
+				WHERE (${searchType} LIKE CONCAT('%', #{keyword}, '%'))
+				AND topic = #{topic}
+			</otherwise>
+		</choose>
+
+	</select>
+	<select id="loadSearchedArticles" parameterType="hashmap"
+		resultType="Article">
+		SELECT * FROM article
+		<choose>
+			<when test="searchType == 'title_content'">
+				WHERE (title LIKE
+				CONCAT('%', #{keyword}, '%') OR
+				content LIKE CONCAT('%',
+				#{keyword}, '%')) AND
+				topic = #{topic}
+
+			</when>
+			<otherwise>
+				WHERE (${searchType} LIKE CONCAT('%', #{keyword}, '%'))
+				AND topic = #{topic}
+			</otherwise>
+		</choose>
+		ORDER BY num DESC
+		LIMIT #{limit} OFFSET
+		#{offset};
+	</select>
+	<select id="getGroupOrder" parameterType="hashmap"
+		resultType="int">
+		<![CDATA[  
+		SELECT groupOrder FROM reply WHERE
+		(depth < #{depth} AND
+		groupOrder > #{parentGrpOrd} AND 
+		groupNum = #{groupNum})
+		ORDER BY
+		groupOrder ASC LIMIT 1;  
+		]]> <!-- 부등호를 태그로 인식하는것 해결. -->
+	</select>
+	<update id="adjustOrder" parameterType="hashmap"> <!-- 새로운 대댓글이 들어갈 자리를 비워주기 위해 위에서 구한 groupOrder부터 1씩 더해서 뒤로 1칸씩 밀어줌. -->
+		<![CDATA[
+		
+		UPDATE reply SET
+		groupOrder = groupOrder + 1
+		WHERE (#{groupOrder} <= groupOrder  
+		AND groupNum = #{groupNum});
+		
+		]]>
+	</update>
+	<select id="getGroupCount" parameterType="int" resultType="int">
+		SELECT COUNT(num) from reply
+		WHERE (groupNum = #{groupNum});
+	</select>
+	<select id="getNextDepth" parameterType="Reply" resultType="int">
+		SELECT
+		depth FROM reply
+		WHERE groupOrder = #{groupOrder} + 1
+		AND groupNum
+		= #{groupNum};
+	</select>
+	<update id="hideReply" parameterType="int">
+		UPDATE reply SET isDeleted
+		= 1 WHERE num = #{num}
+	</update>
+	<update id="adjustAfterDelete" parameterType="Reply">
+		<![CDATA[
+		UPDATE reply SET
+		groupOrder = groupOrder - 1
+		WHERE groupOrder > #{groupOrder}
+		AND groupNum = #{groupNum}
+		]]>
+	</update>
+	<delete id="deleteReply" parameterType="Reply">
+		DELETE FROM reply
+		WHERE
+		num = #{num}
+	</delete>
+	<select id="getParentReply" parameterType="Reply"
+		resultType="Reply">
+		<![CDATA[
+		SELECT * FROM reply 
+		WHERE groupNum = #{groupNum}
+		AND groupOrder < #{groupOrder}
+	 	AND depth = #{depth} -1
+	 	ORDER BY groupOrder DESC
+	 	LIMIT 1
+	 	]]>
+	</select>
+	<select id="getNextSameDepthReply" parameterType="Reply"
+		resultType="Reply">
+		<![CDATA[
+		SELECT * FROM reply 
+		WHERE groupNum = #{groupNum} 
+		AND groupOrder > #{groupOrder}
+		AND depth <= #{depth}
+		ORDER BY groupOrder ASC
+		LIMIT 1
+		]]>
+	</select>
+	<select id="getDirectChildCountNoBound" parameterType="Reply"
+		resultType="int">
+		<![CDATA[
+		SELECT COUNT(num) FROM reply 
+		WHERE groupNum = #{groupNum} 
+		AND groupOrder > #{groupOrder}
+		AND depth = #{depth} + 1
+		]]>
+	</select>
+	<select id="getDirectChildCountWithBound" parameterType="Reply"
+		resultType="int">
+		<![CDATA[
+		SELECT COUNT(num) FROM reply 
+		WHERE groupNum = #{groupNum} 
+		AND groupOrder > #{groupOrder}
+		AND depth = #{depth} + 1
+		AND groupOrder < (
+			SELECT groupOrder FROM reply
+			WHERE groupNum = #{groupNum} 
+			AND groupOrder > #{groupOrder}
+			AND depth <= #{depth}
+			ORDER BY groupOrder ASC
+			LIMIT 1
+		)
+		]]>
+	</select>
+	<select id="getReplyPos" parameterType="Reply" resultType="int">
+		<![CDATA[
+		SELECT
+		(
+			SELECT COUNT(num) FROM reply  
+			WHERE article_num = #{articleNum}
+			AND groupNum < #{groupNum}
+		) +
+		(
+			SELECT COUNT(num) FROM reply  
+			WHERE article_num = #{articleNum}
+			AND groupNum = #{groupNum}
+			AND groupOrder <= #{groupOrder}
+		)
+		]]>
+	</select>
+	<select id="getArticleOrder" parameterType="int"
+		resultType="int">
+		<![CDATA[
+		SELECT COUNT(num) FROM article
+		WHERE num >= #{articleNum} AND
+		topic = (SELECT topic FROM article WHERE num = #{articleNum})
+		]]>
+	</select>
+	<select id="getArticleOrderSearched" parameterType="hashmap"
+		resultType="int">
+		SELECT COUNT(num) FROM article
+		WHERE num <![CDATA[>=]]>
+		#{articleNum}
+		<choose>
+			<when test="searchType == 'title_content'">
+				AND (title LIKE
+				CONCAT('%', #{keyword}, '%') OR
+				content LIKE CONCAT('%',
+				#{keyword}, '%')) AND
+				topic = #{topic}
+			</when>
+			<otherwise>
+				AND (${searchType} LIKE CONCAT('%', #{keyword}, '%'))
+				AND
+				topic = #{topic}
+			</otherwise>
+		</choose>
+	</select>
+	<insert id="putAlert" parameterType="AlertDTO">
+		INSERT INTO alert
+		VALUES(#{replyNum}, #{customerId}, #{content}, #{author})
+	</insert>
+	<update id="increaseNewAlert" parameterType="java.lang.String">
+		UPDATE customer SET
+		newAlert = newAlert + 1
+		WHERE id = #{value};
+	</update>
+	<select id="loadOneReplyByGrp" parameterType="hashmap"
+		resultType="java.lang.String">
+		SELECT customer_id FROM reply
+		WHERE groupNum = #{groupNum}
+		AND groupOrder = #{groupOrder}
+	</select>
+	<select id="getRecentReplyNum" resultType="int">
+		SELECT num FROM reply
+		ORDER BY num DESC
+		LIMIT 1
+	</select>
+	<delete id="removeAlert" parameterType="int">
+		DELETE FROM alert
+		WHERE
+		replyNum = #{replyNum}
+	</delete>
+	<update id="decreaseNewAlert" parameterType="java.lang.String">
+		UPDATE customer
+		SET
+		newAlert = newAlert - 1
+		WHERE id = #{id}
+	</update>
+
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+

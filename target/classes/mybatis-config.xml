@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<settings>
+		<setting name="mapUnderscoreToCamelCase" value="true" />
+	</settings>
+	<typeAliases>
+		<typeAlias alias="Article"
+			type="com.woori.community.entity.Article" />
+		<typeAlias alias="Customer"
+			type="com.woori.community.entity.Customer" />
+		<typeAlias alias="Reply"
+			type="com.woori.community.entity.Reply" />
+
+		<typeAlias alias="CategoryDTO"
+			type="com.woori.community.DTO.CategoryDTO" />
+
+		<typeAlias alias="CTmatchDTO"
+			type="com.woori.community.DTO.CTmatchDTO" />
+
+		<typeAlias alias="TopicDTO"
+			type="com.woori.community.DTO.TopicDTO" />
+
+		<typeAlias alias="AlertDTO"
+			type="com.woori.community.DTO.AlertDTO" />
+
+		<typeAlias alias="RankDTO"
+			type="com.woori.community.DTO.RankDTO" />
+
+		
+
+
+	</typeAliases>
+</configuration>
+
+
+

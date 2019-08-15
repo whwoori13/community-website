@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.woori.community.AdminDAO">
+
+	<insert id="insertCategory" parameterType="CategoryDTO">
+		INSERT INTO category
+		VALUES (#{code}, #{name})
+	</insert>
+	
+	<insert id="insertTopic" parameterType="TopicDTO">
+		INSERT INTO topic
+		VALUES (#{code}, #{name})
+	</insert>
+
+	<delete id="deleteCategory" parameterType="CategoryDTO">
+		DELETE FROM category
+		WHERE code = #{code}
+	</delete>
+	
+	<delete id="deleteTopic" parameterType="TopicDTO">
+		DELETE FROM topic
+		WHERE code = #{code}
+	</delete>
+	
+	<insert id="match" parameterType="CTmatchDTO">
+		INSERT INTO ctmatch
+		VALUES (#{category}, #{topic})
+	</insert>
+	
+	<delete id="unmatch" parameterType="CTmatchDTO">
+		DELETE FROM ctmatch
+		WHERE category = #{category}
+		AND topic = #{topic}
+	</delete>
+	
+	<select id="getCategoryCount" resultType="int">
+		SELECT COUNT(code) FROM category
+	</select>
+	
+	<select id="getTopicCount" resultType="int">
+		SELECT COUNT(code) FROM topic
+	</select>
+	
+</mapper>
+
+
+
